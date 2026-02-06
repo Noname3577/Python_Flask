@@ -73,6 +73,44 @@ header h1 {
     font-size: 1.5em;
 }
 
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    min-width: 250px;
+    transition: border-color 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.btn-export {
+    background: #28a745;
+    padding: 10px 20px;
+}
+
+.btn-export:hover {
+    background: #218838;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -88,6 +126,32 @@ th, td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+}
+
+th {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+th:hover {
+    background: #5568d3;
+}
+
+.sort-icon {
+    font-size: 0.8em;
+    opacity: 0.5;
+    margin-left: 5px;
+}
+
+th.sorted-asc .sort-icon::after {
+    content: ' ▲';
+    opacity: 1;
+}
+
+th.sorted-desc .sort-icon::after {
+    content: ' ▼';
+    opacity: 1;
 }
 
 tbody tr:hover {
@@ -231,6 +295,10 @@ tbody tr:hover {
     text-decoration: underline;
 }
 
+tr.hidden {
+    display: none;
+}
+
 @media (max-width: 768px) {
     header h1 {
         font-size: 2em;
@@ -240,7 +308,24 @@ tbody tr:hover {
         padding: 20px;
     }
     
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .toolbar {
+        width: 100%;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
     table {
         font-size: 0.9em;
+    }
+    
+    .btn-export {
+        flex: 1;
     }
 }

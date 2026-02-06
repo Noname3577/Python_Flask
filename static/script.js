@@ -32,6 +32,163 @@ async function loadUsers() {
     }
 }
 
+// ฟังก์ชันค้นหา
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('userTable');
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = tbody.getElementsByTagName('tr');
+    const noResults = document.getElementById('noResults');
+    let visibleCount = 0;
+    
+    for (let i = 0; i < rows.length; i++) {
+        const nameCell = rows[i].getElementsByClassName('user-name')[0];
+        const emailCell = rows[i].getElementsByClassName('user-email')[0];
+        
+        if (nameCell && emailCell) {
+            const nameText = nameCell.textContent || nameCell.innerText;
+            const emailText = emailCell.textContent || emailCell.innerText;
+            
+            if (nameText.toLowerCase().indexOf(filter) > -1 || 
+                emailText.toLowerCase().indexOf(filter) > -1) {
+                rows[i].classList.remove('hidden');
+                visibleCount++;
+            } else {
+                rows[i].classList.add('hidden');
+            }
+        }
+    }
+    
+    // แสดง/ซ่อนข้อความ "ไม่พบข้อมูล"
+    if (visibleCount === 0 && filter !== '') {
+        table.style.display = 'none';
+        noResults.style.display = 'block';
+    } else {
+        table.style.display = 'table';
+        noResults.style.display = 'none';
+    }
+}
+
+// Event listener สำหรับช่องค้นหา
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', searchTable);
+    }
+});
+
+// ฟังก์ชันเรียงลำดับตาราง
+let sortDirection = {};
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('userTable');
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    // กำหนดทิศทางการเรียง
+    if (!sortDirection[columnIndex]) {
+        sortDirection[columnIndex] = 'asc';
+    } else {
+        sortDirection[columnIndex] = sortDirection[columnIndex] === 'asc' ? 'desc' : 'asc';
+    }
+    
+    const direction = sortDirection[columnIndex];
+    
+    // เรียงลำดับ
+    rows.sort((a, b) => {
+        const aValue = a.getElementsByTagName('td')[columnIndex].textContent.trim();
+        const bValue = b.getElementsByTagName('td')[columnIndex].textContent.trim();
+        
+        // ถ้าเป็นตัวเลข
+        if (!isNaN(aValue) && !isNaN(bValue)) {
+            return direction === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+        
+        // ถ้าเป็นข้อความ
+        if (direction === 'asc') {
+            return aValue.localeCompare(bValue, 'th');
+        } else {
+            return bValue.localeCompare(aValue, 'th');
+        }
+    });
+    
+    // ลบ class sorted ทั้งหมด
+    const headers = table.getElementsByTagName('th');
+    for (let i = 0; i < headers.length; i++) {
+        headers[i].classList.remove('sorted-asc', 'sorted-desc');
+    }
+    
+    // เพิ่ม class sorted ให้คอลัมน์ที่เลือก
+    headers[columnIndex].classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    
+    // เรียงแถวใหม่
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+// ฟังก์ชัน Export เป็น CSV
+function exportToCSV() {
+    const table = document.getElementById('userTable');
+    const rows = table.querySelectorAll('tr:not(.hidden)');
+    let csv = [];
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = [];
+        const cols = rows[i].querySelectorAll('td, th');
+        
+        for (let j = 0; j < cols.length - 1; j++) { // -1 เพื่อไม่เอาคอลัมน์ "จัดการ"
+            let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+            data = data.replace(/"/g, '""');
+            row.push('"' + data + '"');
+        }
+        csv.push(row.join(','));
+    }
+    
+    // สร้างไฟล์และดาวน์โหลด
+    const csvContent = '\uFEFF' + csv.join('\n'); // \uFEFF สำหรับ UTF-8 BOM
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'users_' + new Date().getTime() + '.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// ฟังก์ชัน Export เป็น Excel (HTML Table)
+function exportToExcel() {
+    const table = document.getElementById('userTable').cloneNode(true);
+    
+    // ลบคอลัมน์ "จัดการ"
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        const lastCell = row.querySelector('th:last-child, td:last-child');
+        if (lastCell) lastCell.remove();
+    });
+    
+    // ลบแถวที่ซ่อน
+    const hiddenRows = table.querySelectorAll('tr.hidden');
+    hiddenRows.forEach(row => row.remove());
+    
+    const html = table.outerHTML;
+    const blob = new Blob(['\uFEFF' + html], {
+        type: 'application/vnd.ms-excel;charset=utf-8;'
+    });
+    
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'users_' + new Date().getTime() + '.xls');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 // ฟังก์ชันแก้ไขผู้ใช้
 function editUser(id, name, email) {
     document.getElementById('userId').value = id;

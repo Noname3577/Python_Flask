@@ -25,16 +25,23 @@
         </div>
 
         <div class="card">
-            <h2>📋 รายชื่อผู้ใช้</h2>
+            <div class="card-header">
+                <h2>📋 รายชื่อผู้ใช้</h2>
+                <div class="toolbar">
+                    <input type="text" id="searchInput" placeholder="🔍 ค้นหาชื่อหรือ อีเมล..." class="search-input">
+                    <button onclick="exportToCSV()" class="btn btn-export">📥 Export CSV</button>
+                    <button onclick="exportToExcel()" class="btn btn-export">📊 Export Excel</button>
+                </div>
+            </div>
             
             {% if users %}
-            <table>
+            <table id="userTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>ชื่อ</th>
-                        <th>อีเมล</th>
-                        <th>วันที่สร้าง</th>
+                        <th onclick="sortTable(0)">ID <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable(1)">ชื่อ <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable(2)">อีเมล <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable(3)">วันที่สร้าง <span class="sort-icon">⇅</span></th>
                         <th>จัดการ</th>
                     </tr>
                 </thead>
@@ -53,6 +60,9 @@
                     {% endfor %}
                 </tbody>
             </table>
+            <div id="noResults" class="empty-state" style="display:none;">
+                <p>ไม่พบข้อมูลที่ค้นหา</p>
+            </div>
             {% else %}
             <div class="empty-state">
                 <p>ยังไม่มีข้อมูลผู้ใช้</p>
