@@ -1,13 +1,121 @@
-document.getElementById('addUserForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+// ฟังก์ชันโหลดข้อมูลผู้ใช้
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/users');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.data.length > 0) {
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            data.data.forEach(user => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', user.id);
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td class="user-name">${user.name}</td>
+                    <td class="user-email">${user.email}</td>
+                    <td>${user.created_at}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editUser(${user.id}, '${user.name.replace(/'/g, "\\'")}', '${user.email}')">✏️ แก้ไข</button>
+                        <button class="btn-delete" onclick="deleteUser(${user.id})">🗑️ ลบ</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // อัพเดทจำนวนผู้ใช้
+            document.querySelector('.stat-number').textContent = data.data.length;
+        }
+    } catch (error) {
+        console.error('Error loading users:', error);
+    }
+}
+
+// ฟังก์ชันแก้ไขผู้ใช้
+function editUser(id, name, email) {
+    document.getElementById('userId').value = id;
+    document.getElementById('name').value = name;
+    document.getElementById('email').value = email;
+    document.getElementById('formTitle').textContent = '✏️ แก้ไขข้อมูลผู้ใช้';
+    document.getElementById('submitBtn').textContent = 'บันทึกการแก้ไข';
+    document.getElementById('cancelBtn').style.display = 'inline-block';
     
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
+    // เลื่อนไปที่ฟอร์ม
+    document.getElementById('userForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ฟังก์ชันลบผู้ใช้
+async function deleteUser(id) {
+    if (!confirm('คุณแน่ใจหรือไม่ที่จะลบผู้ใช้นี้?')) {
+        return;
+    }
+    
     const messageDiv = document.getElementById('message');
     
     try {
-        const response = await fetch('/api/users/add', {
-            method: 'POST',
+        const response = await fetch(`/api/users/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            messageDiv.className = 'success';
+            messageDiv.textContent = '✓ ลบผู้ใช้สำเร็จ!';
+            messageDiv.style.display = 'block';
+            
+            // โหลดข้อมูลใหม่
+            await loadUsers();
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        } else {
+            messageDiv.className = 'error';
+            messageDiv.textContent = '✗ เกิดข้อผิดพลาด: ' + data.message;
+            messageDiv.style.display = 'block';
+        }
+    } catch (error) {
+        messageDiv.className = 'error';
+        messageDiv.textContent = '✗ เกิดข้อผิดพลาดในการเชื่อมต่อ';
+        messageDiv.style.display = 'block';
+    }
+}
+
+// ฟังก์ชันยกเลิกการแก้ไข
+function cancelEdit() {
+    document.getElementById('userId').value = '';
+    document.getElementById('userForm').reset();
+    document.getElementById('formTitle').textContent = '➕ เพิ่มผู้ใช้ใหม่';
+    document.getElementById('submitBtn').textContent = 'เพิ่มผู้ใช้';
+    document.getElementById('cancelBtn').style.display = 'none';
+}
+
+// Event listener สำหรับปุ่มยกเลิก
+document.getElementById('cancelBtn').addEventListener('click', cancelEdit);
+
+// Event listener สำหรับฟอร์ม
+document.getElementById('userForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const userId = document.getElementById('userId').value;
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const messageDiv = document.getElementById('message');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    const isEdit = userId !== '';
+    const url = isEdit ? `/api/users/${userId}` : '/api/users/add';
+    const method = isEdit ? 'PUT' : 'POST';
+    
+    // ปิดปุ่มชั่วคราว
+    submitBtn.disabled = true;
+    submitBtn.textContent = isEdit ? 'กำลังบันทึก...' : 'กำลังเพิ่ม...';
+    
+    try {
+        const response = await fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -18,19 +126,31 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
         
         if (response.ok) {
             messageDiv.className = 'success';
-            messageDiv.textContent = '✓ เพิ่มผู้ใช้สำเร็จ!';
-            document.getElementById('addUserForm').reset();
+            messageDiv.textContent = isEdit ? '✓ แก้ไขข้อมูลสำเร็จ!' : '✓ เพิ่มผู้ใช้สำเร็จ!';
+            messageDiv.style.display = 'block';
             
-            // รีโหลดหน้าหลังจาก 1 วินาที
+            // รีเซ็ตฟอร์ม
+            cancelEdit();
+            
+            // โหลดข้อมูลใหม่ทันที
+            await loadUsers();
+            
+            // ซ่อนข้อความหลังจาก 3 วินาที
             setTimeout(() => {
-                location.reload();
-            }, 1000);
+                messageDiv.style.display = 'none';
+            }, 3000);
         } else {
             messageDiv.className = 'error';
             messageDiv.textContent = '✗ เกิดข้อผิดพลาด: ' + data.message;
+            messageDiv.style.display = 'block';
         }
     } catch (error) {
         messageDiv.className = 'error';
         messageDiv.textContent = '✗ เกิดข้อผิดพลาดในการเชื่อมต่อ';
+        messageDiv.style.display = 'block';
+    } finally {
+        // เปิดปุ่มอีกครั้ง
+        submitBtn.disabled = false;
+        submitBtn.textContent = isEdit ? 'บันทึกการแก้ไข' : 'เพิ่มผู้ใช้';
     }
 });

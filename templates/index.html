@@ -35,15 +35,20 @@
                         <th>ชื่อ</th>
                         <th>อีเมล</th>
                         <th>วันที่สร้าง</th>
+                        <th>จัดการ</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
-                    <tr>
+                    <tr data-id="{{ user.id }}">
                         <td>{{ user.id }}</td>
-                        <td>{{ user.name }}</td>
-                        <td>{{ user.email }}</td>
+                        <td class="user-name">{{ user.name }}</td>
+                        <td class="user-email">{{ user.email }}</td>
                         <td>{{ user.created_at }}</td>
+                        <td>
+                            <button class="btn-edit" onclick="editUser({{ user.id }}, '{{ user.name }}', '{{ user.email }}')">✏️ แก้ไข</button>
+                            <button class="btn-delete" onclick="deleteUser({{ user.id }})">🗑️ ลบ</button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -56,8 +61,9 @@
         </div>
 
         <div class="card">
-            <h2>➕ เพิ่มผู้ใช้ใหม่</h2>
-            <form id="addUserForm">
+            <h2 id="formTitle">➕ เพิ่มผู้ใช้ใหม่</h2>
+            <form id="userForm">
+                <input type="hidden" id="userId" value="">
                 <div class="form-group">
                     <label for="name">ชื่อ:</label>
                     <input type="text" id="name" name="name" required>
@@ -66,7 +72,8 @@
                     <label for="email">อีเมล:</label>
                     <input type="email" id="email" name="email" required>
                 </div>
-                <button type="submit" class="btn">เพิ่มผู้ใช้</button>
+                <button type="submit" class="btn" id="submitBtn">เพิ่มผู้ใช้</button>
+                <button type="button" class="btn btn-cancel" id="cancelBtn" style="display:none;">ยกเลิก</button>
             </form>
             <div id="message"></div>
         </div>

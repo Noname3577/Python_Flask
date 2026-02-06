@@ -189,6 +189,61 @@ def add_user():
             'message': str(e)
         }), 500
 
+@app.route('/api/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    """แก้ไขข้อมูลผู้ใช้"""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        
+        if not name or not email:
+            return jsonify({
+                'status': 'error',
+                'message': 'กรุณากรอกชื่อและอีเมล'
+            }), 400
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE users SET name = %s, email = %s WHERE id = %s",
+            (name, email, user_id)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'แก้ไขข้อมูลสำเร็จ'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    """ลบผู้ใช้"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'ลบผู้ใช้สำเร็จ'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 @app.route('/api/init-db')
 def init_db_endpoint():
     """Endpoint สำหรับสร้างตารางด้วย API"""

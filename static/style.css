@@ -134,10 +134,50 @@ tbody tr:hover {
     font-size: 1em;
     cursor: pointer;
     transition: background 0.3s;
+    margin-right: 10px;
 }
 
 .btn:hover {
     background: #5568d3;
+}
+
+.btn-cancel {
+    background: #6c757d;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+
+.btn-edit {
+    background: #ffc107;
+    color: #333;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-right: 5px;
+    transition: background 0.3s;
+}
+
+.btn-edit:hover {
+    background: #e0a800;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background 0.3s;
+}
+
+.btn-delete:hover {
+    background: #c82333;
 }
 
 #message {
