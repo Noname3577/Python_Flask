@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการผู้ใช้</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 ระบบจัดการผู้ใช้</h1>
+            <p class="subtitle">Flask + PostgreSQL on Railway</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ user_count }}</div>
+                <div class="stat-label">ผู้ใช้ทั้งหมด</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ db_status }}</div>
+                <div class="stat-label">สถานะฐานข้อมูล</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 รายชื่อผู้ใช้</h2>
+            
+            {% if users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ชื่อ</th>
+                        <th>อีเมล</th>
+                        <th>วันที่สร้าง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>ยังไม่มีข้อมูลผู้ใช้</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>➕ เพิ่มผู้ใช้ใหม่</h2>
+            <form id="addUserForm">
+                <div class="form-group">
+                    <label for="name">ชื่อ:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">อีเมล:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <button type="submit" class="btn">เพิ่มผู้ใช้</button>
+            </form>
+            <div id="message"></div>
+        </div>
+
+        <div class="api-links">
+            <h3>🔗 API Endpoints</h3>
+            <ul>
+                <li><a href="/api/users" target="_blank">/api/users</a> - ดึงข้อมูลผู้ใช้ (JSON)</li>
+                <li><a href="/api/health" target="_blank">/api/health</a> - ตรวจสอบสถานะ</li>
+                <li><a href="/api/init-db" target="_blank">/api/init-db</a> - สร้างตาราง</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
