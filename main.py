@@ -61,7 +61,25 @@ def init_db():
 def home():
     """หน้าเว็บแสดงผลข้อมูล"""
     try:
+        # ตรวจสอบและสร้างตารางถ้ายังไม่มี
         conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # ตรวจสอบว่าตาราง users มีหรือยัง
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'users'
+            );
+        """)
+        table_exists = cur.fetchone()[0]
+        
+        if not table_exists:
+            cur.close()
+            conn.close()
+            init_db()
+            conn = get_db_connection()
+        
         cur = conn.cursor(row_factory=dict_row)
         cur.execute('SELECT * FROM users ORDER BY id;')
         users = cur.fetchall()
@@ -74,6 +92,11 @@ def home():
                              user_count=user_count,
                              db_status='เชื่อมต่อ')
     except Exception as e:
+        # ถ้าเกิดข้อผิดพลาด ลองสร้างตารางใหม่
+        try:
+            init_db()
+        except:
+            pass
         return render_template('index.html', 
                              users=[], 
                              user_count=0,
